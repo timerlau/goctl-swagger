@@ -4,7 +4,7 @@ import (
 	cli "github.com/urfave/cli/v2"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 
-	"github.com/sliveryou/goctl-swagger/generate"
+	"github.com/timerlau/goctl-swagger/generate"
 )
 
 // Generator generates the swagger json doc.
