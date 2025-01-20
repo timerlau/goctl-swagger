@@ -23,6 +23,7 @@ import (
 var (
 	strColon        = []byte(":")
 	defaultResponse = parseDefaultResponse()
+	serviceName     = "默认服务"
 )
 
 const (
@@ -73,10 +74,19 @@ func parseRangeOption(option string) (min, max float64, ok bool) {
 }
 
 func applyGenerate(p *plugin.Plugin, host, basePath, schemes, pack, response string) (*swaggerObject, error) {
-	title, _ := strconv.Unquote(p.Api.Info.Properties["title"])
-	version, _ := strconv.Unquote(p.Api.Info.Properties["version"])
-	desc, _ := strconv.Unquote(p.Api.Info.Properties["desc"])
-
+	title, err := strconv.Unquote(p.Api.Info.Properties["title"])
+	if err != nil {
+		title = p.Api.Info.Properties["title"]
+	}
+	serviceName = title
+	version, err := strconv.Unquote(p.Api.Info.Properties["version"])
+	if err != nil {
+		version = p.Api.Info.Properties["version"]
+	}
+	desc, err := strconv.Unquote(p.Api.Info.Properties["desc"])
+	if err != nil {
+		desc = p.Api.Info.Properties["desc"]
+	}
 	s := swaggerObject{
 		Swagger:           "2.0",
 		Schemes:           []string{"http", "https"},
@@ -304,7 +314,10 @@ func renderServiceRoutes(service spec.Service, groups []spec.Group, paths swagge
 					respSchema.Ref = "#/definitions/" + route.ResponseType.Name()
 				}
 			}
-			tags := service.Name
+
+			// 设置标签是中文，以 info.title 为主
+			tags := serviceName
+
 			if value := group.GetAnnotation("group"); len(value) > 0 {
 				namingFormat, err := format.FileNamingFormat(config.DefaultFormat, tags)
 				if err != nil {
@@ -321,6 +334,26 @@ func renderServiceRoutes(service spec.Service, groups []spec.Group, paths swagge
 				}
 
 				tags = filepath.Join(namingFormat, value)
+			}
+
+			/*
+				将 @doc(group: "接口分组") 写到每条接口的 group 中
+				@doc (
+					summary: "demo"
+				    description: "demo"
+				    group: "demoGroup"
+				)
+			*/
+			if swGroupName, ok := route.AtDoc.Properties["group"]; ok {
+				namingFormat, err := format.FileNamingFormat(config.DefaultFormat, tags)
+				if err != nil {
+					return
+				}
+				renewSWGroupName, err := strconv.Unquote(swGroupName)
+				if err != nil {
+					renewSWGroupName = swGroupName
+				}
+				tags = filepath.Join(namingFormat, renewSWGroupName)
 			}
 
 			schema := swaggerSchemaObject{
