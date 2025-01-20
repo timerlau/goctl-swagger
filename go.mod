@@ -1,4 +1,4 @@
-module github.com/sliveryou/goctl-swagger
+module github.com/timerlau/goctl-swagger
 
 go 1.19
 

@@ -19,15 +19,15 @@
 
 ```bash
 # 可选：自行编译安装：
-$ git clone https://github.com/sliveryou/goctl-swagger.git
+$ git clone https://github.com/timerlau/goctl-swagger.git
 $ cd goctl-swagger
 $ go install
 
 # 推荐：使用如下命令安装：
-$ go install github.com/sliveryou/goctl-swagger@latest
+$ go install github.com/timerlau/goctl-swagger@latest
 ```
 
-或者从 github 的 [release](https://github.com/sliveryou/goctl-swagger/releases) 页面下载预编译好的二进制文件
+或者从 github 的 [release](https://github.com/timerlau/goctl-swagger/releases) 页面下载预编译好的二进制文件
 
 ### 3. goctl-swagger 使用说明
 
