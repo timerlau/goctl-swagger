@@ -39,17 +39,17 @@ $ go install github.com/timerlau/goctl-swagger@latest
 #  未指定 -response 时，默认使用如下响应结构，其中 is_data 字段为指定响应结构的包装字段
 
 [{
-	"name": "trace_id",
+	"name": "trace",
 	"type": "string",
 	"description": "链路追踪id",
 	"example": "a1b2c3d4e5f6g7h8"
 }, {
 	"name": "code",
-	"type": "integer",
+	"type": "string",
 	"description": "状态码",
 	"example": 0
 }, {
-	"name": "msg",
+	"name": "message",
 	"type": "string",
 	"description": "消息",
 	"example": "ok"

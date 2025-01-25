@@ -46,7 +46,7 @@ const (
 	tagKeyExample  = "example"
 
 	// DefaultResponseJson default response pack json structure.
-	DefaultResponseJson = `[{"name":"trace_id","type":"string","description":"链路追踪id","example":"a1b2c3d4e5f6g7h8"},{"name":"code","type":"integer","description":"状态码","example":0},{"name":"msg","type":"string","description":"消息","example":"ok"},{"name":"data","type":"object","description":"数据","is_data":true}]`
+	DefaultResponseJson = `[{"name":"trace","type":"string","description":"链路追踪id","example":"a1b2c3d4e5f6g7h8"},{"name":"code","type":"string","description":"状态码","example":0},{"name":"message","type":"string","description":"消息","example":"ok"},{"name":"data","type":"object","description":"数据","is_data":true}]`
 )
 
 func parseRangeOption(option string) (min, max float64, ok bool) {
