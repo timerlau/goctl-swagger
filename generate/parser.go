@@ -319,6 +319,8 @@ func renderServiceRoutes(service spec.Service, groups []spec.Group, paths swagge
 			tags := serviceName
 
 			if value := group.GetAnnotation("group"); len(value) > 0 {
+				// group 最多支持一级，永远最多只获取第一个 v1/xxx 中的 v1
+				value := strings.Split(value, "/")[0]
 				namingFormat, err := format.FileNamingFormat(config.DefaultFormat, tags)
 				if err != nil {
 					return
