@@ -1,16 +1,16 @@
-# 自定义 goctl-swagger 
+# 自定义 goctl-swagger
 
 ### 1. goctl-swagger 修复分支
 
 1. 修复：当存在第三方 tag 时，生成的参数名称错误的问题
-2. 修复：当结构体嵌套超过2层时，参数不能正确生成的问题
+2. 修复：当结构体嵌套超过 2 层时，参数不能正确生成的问题
 3. 修复：当同时存在 form 和 json tag 时，request body 包含多余字段的问题
 4. 优化：支持从 [validate](https://github.com/go-playground/validator) tag 中获取参数约束
 5. 修复：升级 goctl 和 go-zero 到 v1.6.6，修复 [#71](https://github.com/zeromicro/goctl-swagger/issues/71)
 6. 添加：当请求方法是 POST/PUT/PATCH 时，如果请求字段不包含 json tag，且包含 form tag 时，在请求的 content-type 中添加 "multipart/form-data", "application/x-www-form-urlencoded"
 7. 添加：`-pack` 和 `-response` 选项，允许在 api 返回结构外再嵌套包装一层
-8. 修复：当结构体嵌套超过2层时，不能继承内联结构体属性的问题
-9. 优化：支持根据 `@doc()` 里的 `file_*` 或 `file_array_*` 键值生成文件类型的请求字段
+8. 修复：当结构体嵌套超过 2 层时，不能继承内联结构体属性的问题
+9. 优化：支持 `tag` 里的 `multipart` 或 `multiparts` 生成文件类型的请求字段
 10. 添加：`delete` 请求方式允许携带请求体
 
 ### 2. 编译 goctl-swagger 插件
@@ -68,20 +68,17 @@ $ goctl api plugin -plugin goctl-swagger='swagger -filename rest.swagger.json -p
 $ goctl api plugin -plugin goctl-swagger='swagger -filename rest.swagger.json -pack Response -response "[{\"name\":\"trace_id\",\"type\":\"string\",\"description\":\"链路追踪id\"},{\"name\":\"code\",\"type\":\"integer\",\"description\":\"状态码\"},{\"name\":\"msg\",\"type\":\"string\",\"description\":\"消息\"},{\"name\":\"data\",\"type\":\"object\",\"description\":\"数据\",\"is_data\":true}]";' -api api/base.api -dir api
 ```
 
-支持根据 `@doc()` 里的 `file_*` 或 `file_array_*` 键值生成文件类型的请求字段：
+Single string `form:"single,optional,omitempty,multipart" desc:"单文件"`
+Multiple string `form:"multiple,optional,omitempty,multiparts" desc:"多文件"`
 
 ```
-解析 api 文件中的 @doc 中的 "file_*" 或 "file_array_*" 键值
-"*" 表示文件字段名，如下所示：
+解析 api 文件中的 @tag 中 options 的 "multipart" 或 "multiparts" 键值
 
-service xxxx {
-    @doc (
-        file_upload: "false, 上传文件"
-        file_array_upload: "false, 上传文件数组"
-    )
-    @handler xxxx
-    ......
+type UploadRequest {
+	Single   string `form:"single,optional,omitempty,multipart" desc:"单文件"`
+	Multiple string `form:"multiple,optional,omitempty,multiparts" desc:"多文件"`
 }
 
-其属性用逗号分隔，第一个代表文件是否必填，第二个表示文件的描述
+添加 multipart 说明是单文件
+添加 multiparts 说明是多文件
 ```

@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -27,16 +26,18 @@ var (
 )
 
 const (
-	defaultOption   = "default"
-	stringOption    = "string"
-	optionalOption  = "optional"
-	omitemptyOption = "omitempty"
-	optionsOption   = "options"
-	rangeOption     = "range"
-	exampleOption   = "example"
-	optionSeparator = "|"
-	equalToken      = "="
-	atRespDoc       = "@respdoc-"
+	defaultOption    = "default"
+	stringOption     = "string"
+	optionalOption   = "optional"
+	omitemptyOption  = "omitempty"
+	optionsOption    = "options"
+	rangeOption      = "range"
+	exampleOption    = "example"
+	optionSeparator  = "|"
+	equalToken       = "="
+	atRespDoc        = "@respdoc-"
+	multipartOption  = "multipart"
+	multipartsOption = "multiparts"
 
 	tagKeyHeader   = "header"
 	tagKeyPath     = "path"
@@ -220,37 +221,39 @@ func renderServiceRoutes(service spec.Service, groups []spec.Group, paths swagge
 			// first one represents the file is it required
 			// second one represents the file description
 
-			var keys []string
-			for key := range route.AtDoc.Properties {
-				keys = append(keys, key)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				v := route.AtDoc.Properties[k]
-				if strings.HasPrefix(k, "file_") {
-					name := strings.TrimPrefix(k, "file_")
-					if strings.HasPrefix(k, "file_array_") {
-						name = strings.TrimPrefix(k, "file_array_") + "[]"
-					}
-					spo := swaggerParameterObject{
-						Name: name,
-						In:   "formData",
-						Type: "file",
-					}
-					if properties := strings.Split(strings.Trim(v, `"`), ","); len(properties) > 0 {
-						isRequired, _ := strconv.ParseBool(strings.TrimSpace(properties[0]))
-						spo.Required = isRequired
-						if len(properties) > 1 {
-							spo.Description = strings.TrimSpace(properties[1])
-						}
-					}
-					parameters = append(parameters, spo)
-					containForm = true
-				}
-			}
+			// var keys []string
+			// for key := range route.AtDoc.Properties {
+			// 	keys = append(keys, key)
+			// }
+			// sort.Strings(keys)
+			// for _, k := range keys {
+			// 	v := route.AtDoc.Properties[k]
+			// 	if strings.HasPrefix(k, "file_") {
+			// 		name := strings.TrimPrefix(k, "file_")
+			// 		if strings.HasPrefix(k, "file_array_") {
+			// 			name = strings.TrimPrefix(k, "file_array_") + "[]"
+			// 		}
+			// 		spo := swaggerParameterObject{
+			// 			Name: name,
+			// 			In:   "formData",
+			// 			Type: "file",
+			// 		}
+			// 		if properties := strings.Split(strings.Trim(v, `"`), ","); len(properties) > 0 {
+			// 			isRequired, _ := strconv.ParseBool(strings.TrimSpace(properties[0]))
+			// 			spo.Required = isRequired
+			// 			if len(properties) > 1 {
+			// 				spo.Description = strings.TrimSpace(properties[1])
+			// 			}
+			// 		}
+			// 		parameters = append(parameters, spo)
+			// 		containForm = true
+			// 	}
+			// }
 
+			// 处理所有 struct
 			if defineStruct, ok := route.RequestType.(spec.DefineStruct); ok {
 				for _, member := range defineStruct.Members {
+
 					f, j := renderMember(pathParamMap, &parameters, member, method)
 					if f {
 						containForm = true
@@ -390,6 +393,10 @@ func renderServiceRoutes(service spec.Service, groups []spec.Group, paths swagge
 						operationObject.Parameters[i].In = "formData"
 					}
 				}
+			}
+
+			if containForm {
+				operationObject.Consumes = []string{"multipart/form-data"}
 			}
 
 			for _, v := range route.Doc {
@@ -644,6 +651,18 @@ func renderStruct(member spec.Member) swaggerParameterObject {
 		}
 
 		required := true
+		// //  multipart 和 multiparts 标签的 required 和 optional 处理 提前
+		// if tag.Key == tagMultipart || tag.Key == tagMultiparts {
+		// 	fmt.Printf("tag.Options: %+v\n", tag.Options)
+		// 	for _, option := range tag.Options {
+		// 		if option == "required" {
+		// 			required = true
+		// 		} else if option == "optional" {
+		// 			required = false
+		// 		}
+		// 	}
+		// }
+
 		for _, option := range tag.Options {
 			if strings.HasPrefix(option, optionsOption) {
 				segs := strings.SplitN(option, equalToken, 2)
@@ -677,6 +696,20 @@ func renderStruct(member spec.Member) swaggerParameterObject {
 				if len(segs) == 2 {
 					sp.Example = segs[1]
 				}
+			}
+
+			if strings.HasPrefix(option, multipartOption) {
+				sp.In = "formData"
+				sp.Type = "file"
+			}
+
+			if strings.HasPrefix(option, multipartsOption) {
+				sp.In = "formData"
+				sp.Type = "file"
+				if sp.Name == "" {
+					sp.Name = member.Name
+				}
+				sp.Name = sp.Name + "[]"
 			}
 		}
 		sp.Required = required
